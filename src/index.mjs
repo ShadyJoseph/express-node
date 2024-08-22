@@ -1,14 +1,14 @@
-// index.mjs
 import express from "express";
 import { validationResult, matchedData } from "express-validator";
+import { checkSchema } from 'express-validator';
 import dotenv from "dotenv";
 import { mockUsers } from "./DB.js";
 import {
-    userIdValidation,
-    userFiltersValidation,
-    createUserValidation,
-    updateUserValidation,
-    patchUserValidation
+    userIdSchema,
+    userFiltersSchema,
+    createUserSchema,
+    updateUserSchema,
+    patchUserSchema
 } from "./utils/validationSchemas.js";
 
 dotenv.config();
@@ -45,10 +45,10 @@ const validateRequest = (req, res, next) => {
 
 // Middleware to resolve user by ID
 const validateUserId = [
-    ...userIdValidation,
+    checkSchema(userIdSchema),
     validateRequest,
     (req, res, next) => {
-        const userId = parseInt(req.params.id, 10);
+        const userId = req.params.id;
         const userIndex = mockUsers.findIndex(user => user.id === userId);
         if (userIndex === -1) {
             return res.status(HTTP_STATUS.NOT_FOUND).json({ error: `User with ID ${userId} not found` });
@@ -65,7 +65,7 @@ app.get("/", (req, res) => res.status(HTTP_STATUS.OK).json({ message: "Welcome t
 
 // Get all users or filtered users
 app.get("/api/users", [
-    ...userFiltersValidation,
+    checkSchema(userFiltersSchema),
     validateRequest,
 ], (req, res) => {
     const { filter, value } = matchedData(req);
@@ -81,7 +81,7 @@ app.get("/api/users", [
 
 // Create a new user
 app.post("/api/users", [
-    ...createUserValidation,
+    checkSchema(createUserSchema),
     validateRequest,
 ], (req, res) => {
     const validatedData = matchedData(req);
@@ -101,19 +101,19 @@ app.get("/api/users/:id", validateUserId, (req, res) => {
 
 // Update a user completely by ID
 app.put("/api/users/:id", [
-    ...validateUserId,
-    ...updateUserValidation,
+    validateUserId,
+    checkSchema(updateUserSchema),
     validateRequest,
 ], (req, res) => {
     const validatedData = matchedData(req);
-    mockUsers[req.userIndex] = { id: parseInt(req.params.id, 10), ...validatedData };
+    mockUsers[req.userIndex] = { id: req.params.id, ...validatedData };
     return res.status(HTTP_STATUS.OK).json(mockUsers[req.userIndex]);
 });
 
 // Partially update a user by ID
 app.patch("/api/users/:id", [
-    ...validateUserId,
-    ...patchUserValidation,
+    validateUserId,
+    checkSchema(patchUserSchema),
     validateRequest,
 ], (req, res) => {
     const validatedData = matchedData(req);
