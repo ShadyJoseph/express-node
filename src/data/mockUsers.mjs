@@ -1,4 +1,4 @@
-export const mockUsers = [
+ const mockUsers = [
     { id: 1, username: "shady", job: "Software Engineer" },
     { id: 2, username: "gamal", job: "Data Scientist" },
     { id: 3, username: "fady", job: "Product Manager" },
@@ -25,3 +25,5 @@ export const mockUsers = [
     { id: 24, username: "fouad", job: "Architect" },
     { id: 25, username: "basma", job: "Biomedical Engineer" }
 ];
+
+export default mockUsers
