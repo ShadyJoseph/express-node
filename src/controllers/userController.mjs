@@ -1,26 +1,33 @@
 import { matchedData } from 'express-validator';
-import mockUsers from '../data/mockUsers.mjs'
+import mockUsers from '../data/mockUsers.mjs';
 
-// Get all users or filtered users
 export const getUsers = (req, res) => {
+  const apiToken = req.signedCookies.API_TOKEN;
+
+  if (!apiToken || apiToken !== "hello") {
+    return res.status(403).json({ error: "Access denied: Invalid or missing API token." });
+  }
+
   const { filter, value } = matchedData(req);
+
   if (!filter || !value) {
-    return res.json(mockUsers);
+    return res.json({ users: mockUsers, token: apiToken });
   }
+
   const filteredUsers = mockUsers.filter(user => user[filter]?.includes(value));
+
   if (filteredUsers.length === 0) {
-    return res.status(400).json({ error: `Invalid filter '${filter}' or no matching users found` });
+    return res.status(400).json({ error: `No users found matching filter '${filter}'` });
   }
-  res.json(filteredUsers);
+
+  res.json({ users: filteredUsers, token: apiToken });
 };
 
-// Get a specific user by ID
 export const getUserById = (req, res) => {
   const user = mockUsers[req.userIndex];
   res.json(user);
 };
 
-// Create a new user
 export const createUser = (req, res) => {
   const validatedData = matchedData(req);
   const newUser = {
@@ -31,25 +38,19 @@ export const createUser = (req, res) => {
   res.status(201).json(newUser);
 };
 
-// Update a user completely by ID
 export const updateUser = (req, res) => {
   const validatedData = matchedData(req);
   mockUsers[req.userIndex] = { id: req.params.id, ...validatedData };
   res.json(mockUsers[req.userIndex]);
 };
 
-// Partially update a user by ID
 export const patchUser = (req, res) => {
   const validatedData = matchedData(req);
-  const updatedUser = {
-    ...mockUsers[req.userIndex],
-    ...validatedData,
-  };
+  const updatedUser = { ...mockUsers[req.userIndex], ...validatedData };
   mockUsers[req.userIndex] = updatedUser;
   res.json(updatedUser);
 };
 
-// Delete a user by ID
 export const deleteUser = (req, res) => {
   mockUsers.splice(req.userIndex, 1);
   res.status(204).send();

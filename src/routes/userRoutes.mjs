@@ -11,7 +11,6 @@ import {
 import validateRequest from '../middlewares/validateRequest.mjs';
 import validateUserId from '../middlewares/validateUserId.mjs';
 import {
-  userIdSchema,
   userFiltersSchema,
   createUserSchema,
   updateUserSchema,
