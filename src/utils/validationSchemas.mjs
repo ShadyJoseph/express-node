@@ -1,4 +1,6 @@
-import { isValidString } from '../validators/customValidators.mjs';
+import { isValidString } from '../utils/customValidators.mjs';
+import rateLimit from 'express-rate-limit';
+
 
 export const userIdSchema = {
   id: {
@@ -64,3 +66,27 @@ export const patchUserSchema = {
   username: { ...createUserSchema.username, optional: true },
   job: { ...createUserSchema.job, optional: true },
 };
+
+
+// Validation schema for auth
+export const authSchema = {
+  username: {
+    in: ['body'],
+    isString: true,
+    notEmpty: true,
+    errorMessage: 'Username is required',
+  },
+  password: {
+    in: ['body'],
+    isString: true,
+    notEmpty: true,
+    errorMessage: 'Password is required',
+  },
+};
+
+// Rate limiting for the auth route
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: 'Too many login attempts, please try again later',
+});

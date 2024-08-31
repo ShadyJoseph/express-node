@@ -1,3 +1,4 @@
+// src/routes/userRoutes.mjs
 import express from 'express';
 import { checkSchema } from 'express-validator';
 import {
@@ -8,17 +9,21 @@ import {
   patchUser,
   deleteUser
 } from '../controllers/userController.mjs';
+import { authUser } from '../controllers/authController.mjs';
 import validateRequest from '../middlewares/validateRequest.mjs';
 import validateUserId from '../middlewares/validateUserId.mjs';
 import {
   userFiltersSchema,
   createUserSchema,
   updateUserSchema,
-  patchUserSchema
+  patchUserSchema,
+  authSchema,
+  authLimiter
 } from '../utils/validationSchemas.mjs';
 
 const router = express.Router();
 
+router.post('/auth', authLimiter, checkSchema(authSchema), validateRequest, authUser);
 router.get('/', checkSchema(userFiltersSchema), validateRequest, getUsers);
 router.post('/', checkSchema(createUserSchema), validateRequest, createUser);
 router.get('/:id', validateUserId, getUserById);

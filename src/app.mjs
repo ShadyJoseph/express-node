@@ -3,18 +3,21 @@ import routes from './routes/index.mjs';
 import logRequests from './middlewares/logRequests.mjs';
 import errorHandler from './middlewares/errorHandler.mjs';
 import cookieParser from 'cookie-parser';
-import session from 'express-session';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import sessionService from './services/sessionService.mjs';
+import { APP_CONFIG } from './config/config.mjs';
 
 const app = express();
-const COOKIE_SECRET = process.env.COOKIE_SECRET || 'shadyJ';
 
+app.use(helmet());
 app.use(express.json());
-app.use(cookieParser(COOKIE_SECRET));
-app.use(session({}))
+app.use(cookieParser(APP_CONFIG.cookieSecret));
+app.use(sessionService);
+app.use(morgan('combined'));
 app.use(logRequests);
 
 app.use('/api', routes);
-
 app.use(errorHandler);
 
 export default app;
