@@ -20,3 +20,12 @@ export const authUser = async (req, res) => {
     handleError(res, 500, 'An unexpected error occurred');
   }
 };
+
+export const authState = async (req, res) => {
+  req.sessionStore.get(req.sessionID,(err,session)=>{
+    console.log(session)
+  })
+  req.session.user
+    ? res.status(200).json(req.session.user)
+    : handleError(res, 401, 'NOT AUTHENTICATED');
+};

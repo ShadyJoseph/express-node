@@ -58,7 +58,17 @@ export const createUserSchema = {
       errorMessage: 'Job must be a valid string',
     },
   },
+  password: {
+    in: ['body'],
+    isString: true,
+    notEmpty: true,
+    isLength: {
+      options: { min: 6 },
+      errorMessage: 'Password is required and must be at least 6 characters long',
+    },
+  },
 };
+
 
 export const updateUserSchema = { ...createUserSchema };
 

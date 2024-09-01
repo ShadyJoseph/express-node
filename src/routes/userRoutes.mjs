@@ -9,7 +9,7 @@ import {
   patchUser,
   deleteUser
 } from '../controllers/userController.mjs';
-import { authUser } from '../controllers/authController.mjs';
+import { authUser,authState } from '../controllers/authController.mjs';
 import validateRequest from '../middlewares/validateRequest.mjs';
 import validateUserId from '../middlewares/validateUserId.mjs';
 import {
@@ -24,6 +24,7 @@ import {
 const router = express.Router();
 
 router.post('/auth', authLimiter, checkSchema(authSchema), validateRequest, authUser);
+router.get('/auth/status',authState);
 router.get('/', checkSchema(userFiltersSchema), validateRequest, getUsers);
 router.post('/', checkSchema(createUserSchema), validateRequest, createUser);
 router.get('/:id', validateUserId, getUserById);

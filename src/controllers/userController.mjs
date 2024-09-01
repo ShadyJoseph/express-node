@@ -15,9 +15,6 @@ export const getUsers = async (req, res) => {
   try {
     req.session.visited = true;
 
-    console.log(req.session);
-    console.log(req.session.id);
-
     req.sessionStore.get(req.session.id, (err, sessionData) => {
       if (err) {
         console.error('Error fetching session data:', err);
