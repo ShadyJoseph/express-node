@@ -7,6 +7,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import sessionService from './services/sessionService.mjs';
 import { APP_CONFIG } from './config/config.mjs';
+import passport from 'passport';
+import './strategies/localStrategy.mjs'; // Import to initialize the strategy
 
 const app = express();
 
@@ -14,10 +16,12 @@ app.use(helmet());
 app.use(express.json());
 app.use(cookieParser(APP_CONFIG.cookieSecret));
 app.use(sessionService);
+app.use(passport.initialize()); 
+app.use(passport.session());    
 app.use(morgan('combined'));
 app.use(logRequests);
 
-app.use('/api', routes);
+app.use('/api', routes); // Ensure this correctly points to the routes
 app.use(errorHandler);
 
 export default app;

@@ -1,4 +1,3 @@
-// src/routes/userRoutes.mjs
 import express from 'express';
 import { checkSchema } from 'express-validator';
 import {
@@ -9,22 +8,21 @@ import {
   patchUser,
   deleteUser
 } from '../controllers/userController.mjs';
-import { authUser,authState } from '../controllers/authController.mjs';
 import validateRequest from '../middlewares/validateRequest.mjs';
 import validateUserId from '../middlewares/validateUserId.mjs';
+import { ensureAuthenticated } from '../middlewares/ensureAuthenticated.mjs';
 import {
   userFiltersSchema,
   createUserSchema,
   updateUserSchema,
   patchUserSchema,
-  authSchema,
-  authLimiter
 } from '../utils/validationSchemas.mjs';
 
 const router = express.Router();
 
-router.post('/auth', authLimiter, checkSchema(authSchema), validateRequest, authUser);
-router.get('/auth/status',authState);
+// Apply the authentication middleware to all user routes
+router.use(ensureAuthenticated);
+
 router.get('/', checkSchema(userFiltersSchema), validateRequest, getUsers);
 router.post('/', checkSchema(createUserSchema), validateRequest, createUser);
 router.get('/:id', validateUserId, getUserById);
