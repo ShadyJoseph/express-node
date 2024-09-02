@@ -12,10 +12,10 @@ router.get('/', (req, res) => {
     secure: process.env.NODE_ENV === 'production',
   };
   res.cookie('API_TOKEN', 'some_dynamic_value', cookieOptions); // 'some_dynamic_value' should be replaced with a real token
-  res.status(201).json({ message: 'Welcome to the API' });
+  res.status(201).json({ message: 'WELCOME TO THE API' });
 });
 
 router.use('/users', userRoutes);
-router.use('/auth', authRoutes); // This should correctly map to the authentication routes
+router.use('/auth', authRoutes); 
 
 export default router;

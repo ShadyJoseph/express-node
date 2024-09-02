@@ -7,13 +7,12 @@ export const authUser = (req, res, next) => {
             return next(err);
         }
         if (!user) {
-            return handleError(res, 401, "BAD CRED");
+            return handleError(res, 401, "INVALID CREDENTIALS");
         }
         req.logIn(user, (err) => {
             if (err) {
                 return next(err);
             }
-            // Optionally, add any custom session logic here
             req.session.user = { id: user.id, username: user.username, job: user.job };
             req.session.visited = true;
 

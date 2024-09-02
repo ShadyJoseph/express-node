@@ -19,8 +19,6 @@ import {
 } from '../utils/validationSchemas.mjs';
 
 const router = express.Router();
-
-// Apply the authentication middleware to all user routes
 router.use(ensureAuthenticated);
 
 router.get('/', checkSchema(userFiltersSchema), validateRequest, getUsers);

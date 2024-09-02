@@ -45,7 +45,7 @@ export const getUsers = async (req, res) => {
 
     res.json({ users: filteredUsers, token: apiToken });
   } catch (error) {
-    console.error('Error in getUsers:', error); // Logging the error
+    console.error('Error in getUsers:', error); 
     handleError(res, 500, "An unexpected error occurred");
   }
 };
@@ -57,7 +57,7 @@ export const getUserById = async (req, res) => {
     const user = mockUsers[req.userIndex];
     res.json(user);
   } catch (error) {
-    console.error('Error in getUserById:', error); // Logging the error
+    console.error('Error in getUserById:', error); 
     handleError(res, 500, "An unexpected error occurred");
   }
 };
@@ -72,7 +72,7 @@ export const createUser = async (req, res) => {
     mockUsers.push(newUser);
     res.status(201).json(newUser);
   } catch (error) {
-    console.error('Error in createUser:', error); // Logging the error
+    console.error('Error in createUser:', error);
     handleError(res, 500, "An unexpected error occurred");
   }
 };
@@ -85,7 +85,7 @@ export const updateUser = async (req, res) => {
     mockUsers[req.userIndex] = { id: req.params.id, ...validatedData };
     res.json(mockUsers[req.userIndex]);
   } catch (error) {
-    console.error('Error in updateUser:', error); // Logging the error
+    console.error('Error in updateUser:', error); 
     handleError(res, 500, "An unexpected error occurred");
   }
 };

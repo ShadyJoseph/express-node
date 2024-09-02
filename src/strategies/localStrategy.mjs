@@ -7,10 +7,10 @@ passport.use(
         try {
             const user = mockUsers.find(user => user.username === username);
             if (!user) {
-                return done(null, false, { message: 'User not found' });
+                return done(null, false, { message: 'USER NOT FUND' });
             }
             if (user.password !== password) {
-                return done(null, false, { message: 'Incorrect credentials' });
+                return done(null, false, { message: 'INVALID CREDENTIALS' });
             }
             return done(null, user);
         } catch (err) {
@@ -28,7 +28,7 @@ passport.deserializeUser((id, done) => {
     if (user) {
         done(null, user);
     } else {
-        done(new Error('User not found'));
+        done(new Error('USER NOT FOUND'));
     }
 });
 

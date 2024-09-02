@@ -8,7 +8,7 @@ import morgan from 'morgan';
 import sessionService from './services/sessionService.mjs';
 import { APP_CONFIG } from './config/config.mjs';
 import passport from 'passport';
-import './strategies/localStrategy.mjs'; // Import to initialize the strategy
+import './strategies/localStrategy.mjs'; 
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.use(passport.session());
 app.use(morgan('combined'));
 app.use(logRequests);
 
-app.use('/api', routes); // Ensure this correctly points to the routes
+app.use('/api', routes); 
 app.use(errorHandler);
 
 export default app;
