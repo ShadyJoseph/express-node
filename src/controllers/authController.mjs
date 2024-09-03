@@ -7,7 +7,7 @@ export const authUser = (req, res, next) => {
             return next(err);
         }
         if (!user) {
-            return handleError(res, 401, "INVALID CREDENTIALS");
+            return handleError(res, 401, "Invalid credentials");
         }
         req.logIn(user, (err) => {
             if (err) {
@@ -25,5 +25,5 @@ export const authState = (req, res) => {
     if (req.isAuthenticated()) {
         return res.status(200).json(req.session.user);
     }
-    return handleError(res, 401, 'NOT AUTHENTICATED');
+    return handleError(res, 401, 'Not authenticated');
 };
