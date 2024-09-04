@@ -37,7 +37,7 @@ export const logoutUser = (req, res, next) => {
             if (err) {
                 return next(err);
             }
-            res.clearCookie('connect.sid'); // Clears the session cookie
+            res.clearCookie('connect.sid'); 
             res.status(200).json({ message: 'Logged out successfully' });
         });
     });

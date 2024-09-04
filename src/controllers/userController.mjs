@@ -4,15 +4,7 @@ import { handleError } from '../utils/responseHandlers.mjs';
 import { logError } from '../utils/logger.mjs';
 import User from '../mongoose/schemas/user.mjs';
 import bcrypt from 'bcrypt';
-import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
-
-// Rate limiting for user creation to prevent abuse
-export const createUserLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // Limit each IP to 5 user creation requests per windowMs
-    message: 'Too many account creation attempts, please try again later',
-});
 
 export const getUsers = async (req, res) => {
     try {
@@ -28,10 +20,10 @@ export const getUsers = async (req, res) => {
         let users;
         if (filter && value) {
             const query = {};
-            query[filter] = { $regex: value, $options: 'i' }; // Case-insensitive search
-            users = await User.find(query).lean().exec(); // Use lean for performance
+            query[filter] = { $regex: value, $options: 'i' }; 
+            users = await User.find(query).lean().exec(); 
         } else {
-            users = await User.find({}).lean().exec(); // Use lean to return plain JavaScript objects
+            users = await User.find({}).lean().exec(); 
         }
 
         res.json({ users, token: apiToken });
@@ -69,7 +61,7 @@ export const createUser = async (req, res) => {
 
         await newUser.save();
         res.status(201).json({
-            id: newUser._id,  // Explicitly return the user's ID
+            id: newUser._id, 
             username: newUser.username,
             job: newUser.job
         });

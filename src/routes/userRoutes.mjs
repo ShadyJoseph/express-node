@@ -18,13 +18,13 @@ import {
     updateUserSchema,
     patchUserSchema,
 } from '../utils/validationSchemas.mjs';
-
+import { createUserLimiter } from '../utils/rateLimiter.mjs';
 const router = express.Router();
 
 router.use(ensureAuthenticated);
 
 router.get('/', checkSchema(userFiltersSchema), validateRequest, getUsers);
-router.post('/', checkSchema(createUserSchema), validateRequest, createUser);
+router.post('/', createUserLimiter,checkSchema(createUserSchema), validateRequest, createUser);
 router.get('/:id', validateUserId, getUserById);
 router.put('/:id', validateUserId, checkSchema(updateUserSchema), validateRequest, updateUser);
 router.patch('/:id', validateUserId, checkSchema(patchUserSchema), validateRequest, patchUser);

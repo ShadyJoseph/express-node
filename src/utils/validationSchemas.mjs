@@ -1,6 +1,4 @@
 import { isValidString } from '../utils/customValidators.mjs';
-import rateLimit from 'express-rate-limit';
-
 export const userIdSchema = {
   id: {
     in: ['params'],
@@ -95,10 +93,3 @@ export const authSchema = {
     errorMessage: 'Password is required',
   },
 };
-
-// Rate limiting for the auth route
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
-  message: 'Too many login attempts, please try again after 15 minutes',
-});
