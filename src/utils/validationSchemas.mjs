@@ -1,15 +1,12 @@
 import { isValidString } from '../utils/customValidators.mjs';
 import rateLimit from 'express-rate-limit';
 
-
 export const userIdSchema = {
   id: {
     in: ['params'],
-    isInt: {
-      options: { gt: 0 },
-      errorMessage: 'ID must be a positive integer',
+    isMongoId: {
+      errorMessage: 'Invalid user ID format',
     },
-    toInt: true,
   },
 };
 
@@ -41,7 +38,7 @@ export const createUserSchema = {
     },
     custom: {
       options: isValidString,
-      errorMessage: 'Username must be a valid string',
+      errorMessage: 'Username must be a valid string without leading or trailing spaces',
     },
   },
   job: {
@@ -55,7 +52,7 @@ export const createUserSchema = {
     },
     custom: {
       options: isValidString,
-      errorMessage: 'Job must be a valid string',
+      errorMessage: 'Job must be a valid string without leading or trailing spaces',
     },
   },
   password: {
@@ -63,20 +60,23 @@ export const createUserSchema = {
     isString: true,
     notEmpty: true,
     isLength: {
-      options: { min: 6 },
-      errorMessage: 'Password is required and must be at least 6 characters long',
+      options: { min: 8, max: 50 },
+      errorMessage: 'Password is required and must be between 8 and 50 characters long',
+    },
+    matches: {
+      options: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+      errorMessage: 'Password must contain at least one letter and one number',
     },
   },
 };
-
 
 export const updateUserSchema = { ...createUserSchema };
 
 export const patchUserSchema = {
   username: { ...createUserSchema.username, optional: true },
   job: { ...createUserSchema.job, optional: true },
+  password: { ...createUserSchema.password, optional: true },
 };
-
 
 // Validation schema for auth
 export const authSchema = {
@@ -84,12 +84,14 @@ export const authSchema = {
     in: ['body'],
     isString: true,
     notEmpty: true,
+    trim: true,
     errorMessage: 'Username is required',
   },
   password: {
     in: ['body'],
     isString: true,
     notEmpty: true,
+    trim: true,
     errorMessage: 'Password is required',
   },
 };
@@ -97,6 +99,6 @@ export const authSchema = {
 // Rate limiting for the auth route
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per windowMs
-  message: 'Too many login attempts, please try again later',
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: 'Too many login attempts, please try again after 15 minutes',
 });

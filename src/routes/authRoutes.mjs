@@ -18,3 +18,6 @@ router.get('/status', authState);
 router.post('/logout', logoutUser);
 
 export default router;
+/*{
+  "username":"test666","password":"testpass666","job":"testjob666"
+}*/

@@ -1,29 +1,22 @@
 // src/controllers/userController.mjs
 import { matchedData } from 'express-validator';
-import mockUsers from '../data/mockUsers.mjs';
 import { handleError } from '../utils/responseHandlers.mjs';
-import { logError, logInfo } from '../utils/logger.mjs';
+import { logError } from '../utils/logger.mjs';
+import User from '../mongoose/schemas/user.mjs';
+import bcrypt from 'bcrypt';
+import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
 
-// Utility function to validate user index
-const validateUserIndex = (req, res) => {
-    const { userIndex } = req;
-    if (userIndex < 0 || userIndex >= mockUsers.length) {
-        return handleError(res, 404, "User not found");
-    }
-    return null;
-};
+// Rate limiting for user creation to prevent abuse
+export const createUserLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 user creation requests per windowMs
+    message: 'Too many account creation attempts, please try again later',
+});
 
 export const getUsers = async (req, res) => {
     try {
         req.session.visited = true;
-
-        req.sessionStore.get(req.session.id, (err, sessionData) => {
-            if (err) {
-                logError('Error fetching session data', err);
-            } else {
-                logInfo('Session data', sessionData);
-            }
-        });
 
         const apiToken = req.signedCookies.API_TOKEN;
         if (!apiToken || apiToken !== "hello") {
@@ -31,21 +24,17 @@ export const getUsers = async (req, res) => {
         }
 
         const { filter, value } = matchedData(req);
-        if (!filter || !value) {
-            return res.json({ users: mockUsers, token: apiToken });
+
+        let users;
+        if (filter && value) {
+            const query = {};
+            query[filter] = { $regex: value, $options: 'i' }; // Case-insensitive search
+            users = await User.find(query).lean().exec(); // Use lean for performance
+        } else {
+            users = await User.find({}).lean().exec(); // Use lean to return plain JavaScript objects
         }
 
-        if (!mockUsers.some(user => filter in user)) {
-            return handleError(res, 400, `Invalid filter '${filter}'`);
-        }
-
-        const filteredUsers = mockUsers.filter(user => user[filter]?.includes(value));
-
-        if (filteredUsers.length === 0) {
-            return handleError(res, 400, `No users found matching filter '${filter}'`);
-        }
-
-        res.json({ users: filteredUsers, token: apiToken });
+        res.json({ users, token: apiToken });
     } catch (error) {
         logError('Error in getUsers', error);
         handleError(res, 500, "An unexpected error occurred");
@@ -54,9 +43,15 @@ export const getUsers = async (req, res) => {
 
 export const getUserById = async (req, res) => {
     try {
-        if (validateUserIndex(req, res)) return;
+        // Validate if id is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return handleError(res, 400, "Invalid user ID");
+        }
 
-        const user = mockUsers[req.userIndex];
+        const user = await User.findById(req.params.id).lean().exec();
+        if (!user) {
+            return handleError(res, 404, "User not found");
+        }
         res.json(user);
     } catch (error) {
         logError('Error in getUserById', error);
@@ -67,12 +62,17 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
     try {
         const validatedData = matchedData(req);
-        const newUser = {
-            id: (mockUsers[mockUsers.length - 1]?.id || 0) + 1,
-            ...validatedData,
-        };
-        mockUsers.push(newUser);
-        res.status(201).json(newUser);
+
+        // Hash the password before saving
+        const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+        const newUser = new User({ ...validatedData, password: hashedPassword });
+
+        await newUser.save();
+        res.status(201).json({
+            id: newUser._id,  // Explicitly return the user's ID
+            username: newUser.username,
+            job: newUser.job
+        });
     } catch (error) {
         logError('Error in createUser', error);
         handleError(res, 500, "An unexpected error occurred");
@@ -81,11 +81,23 @@ export const createUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     try {
-        if (validateUserIndex(req, res)) return;
-
         const validatedData = matchedData(req);
-        mockUsers[req.userIndex] = { id: req.params.id, ...validatedData };
-        res.json(mockUsers[req.userIndex]);
+
+        // Hash the password if it’s being updated
+        if (validatedData.password) {
+            validatedData.password = await bcrypt.hash(validatedData.password, 10);
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id, 
+            validatedData, 
+            { new: true, runValidators: true }
+        ).lean().exec();
+
+        if (!updatedUser) {
+            return handleError(res, 404, "User not found");
+        }
+        res.json(updatedUser);
     } catch (error) {
         logError('Error in updateUser', error);
         handleError(res, 500, "An unexpected error occurred");
@@ -94,11 +106,22 @@ export const updateUser = async (req, res) => {
 
 export const patchUser = async (req, res) => {
     try {
-        if (validateUserIndex(req, res)) return;
-
         const validatedData = matchedData(req);
-        const updatedUser = { ...mockUsers[req.userIndex], ...validatedData };
-        mockUsers[req.userIndex] = updatedUser;
+
+        // Hash the password if it’s being patched
+        if (validatedData.password) {
+            validatedData.password = await bcrypt.hash(validatedData.password, 10);
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id, 
+            { $set: validatedData }, 
+            { new: true, runValidators: true }
+        ).lean().exec();
+
+        if (!updatedUser) {
+            return handleError(res, 404, "User not found");
+        }
         res.json(updatedUser);
     } catch (error) {
         logError('Error in patchUser', error);
@@ -108,9 +131,10 @@ export const patchUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
     try {
-        if (validateUserIndex(req, res)) return;
-
-        mockUsers.splice(req.userIndex, 1);
+        const deletedUser = await User.findByIdAndDelete(req.params.id).lean().exec();
+        if (!deletedUser) {
+            return handleError(res, 404, "User not found");
+        }
         res.status(204).send();
     } catch (error) {
         logError('Error in deleteUser', error);

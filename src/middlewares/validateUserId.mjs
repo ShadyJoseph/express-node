@@ -1,19 +1,24 @@
 import { checkSchema } from 'express-validator';
-import mockUsers from '../data/mockUsers.mjs';
 import { userIdSchema } from '../utils/validationSchemas.mjs';
 import validateRequest from './validateRequest.mjs';
+import User from '../mongoose/schemas/user.mjs';
 
 const validateUserId = [
   checkSchema(userIdSchema),
   validateRequest,
-  (req, res, next) => {
-    const userId = parseInt(req.params.id, 10);
-    const userIndex = mockUsers.findIndex(user => user.id === userId);
-    if (userIndex === -1) {
-      return res.status(404).json({ error: `User with ID ${userId} not found` });
+  async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: `User with ID ${userId} not found` });
+      }
+      req.user = user; // Pass the user data to the next middleware or controller
+      next();
+    } catch (err) {
+      console.error('Error validating user ID:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
-    req.userIndex = userIndex;
-    next();
   }
 ];
 
