@@ -1,7 +1,7 @@
-// src/utils/hashingUtils.mjs
 import bcrypt from 'bcrypt';
 
+const SALT_ROUNDS = 10;
+
 export const hashPassword = async (password) => {
-    const saltRounds = 10;
-    return await bcrypt.hash(password, saltRounds);
+    return bcrypt.hash(password, SALT_ROUNDS);
 };

@@ -17,7 +17,7 @@ const validateUserId = [
       next();
     } catch (err) {
       console.error('Error validating user ID:', err);
-      return res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 ];

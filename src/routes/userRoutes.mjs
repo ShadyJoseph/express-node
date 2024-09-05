@@ -1,4 +1,3 @@
-// src/routes/userRoutes.mjs
 import express from 'express';
 import { checkSchema } from 'express-validator';
 import {

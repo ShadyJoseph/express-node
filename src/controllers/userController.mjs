@@ -1,4 +1,3 @@
-// src/controllers/userController.mjs
 import { matchedData } from 'express-validator';
 import { handleError } from '../utils/responseHandlers.mjs';
 import { logError } from '../utils/logger.mjs';
@@ -6,53 +5,42 @@ import User from '../mongoose/schemas/user.mjs';
 import mongoose from 'mongoose';
 import { hashPassword } from '../utils/hashingUtils.mjs';
 
-export const getUsers = async (req, res) => {
+const handleDatabaseOperation = async (operation, res, successStatus = 200) => {
     try {
-        req.session.visited = true;
-
-        const { filter, value } = matchedData(req);
-
-        let users;
-        if (filter && value) {
-            const query = {};
-            query[filter] = { $regex: value, $options: 'i' };
-            users = await User.find(query).lean().exec();
-        } else {
-            users = await User.find({}).lean().exec();
-        }
-
-        res.json({ users });
+        const result = await operation();
+        res.status(successStatus).json(result);
     } catch (error) {
-        logError('Error in getUsers', error);
+        logError('Database operation error', error);
         handleError(res, 500, "An unexpected error occurred");
     }
 };
-export const getUserById = async (req, res) => {
-    try {
-        // Validate if id is a valid ObjectId
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return handleError(res, 400, "Invalid user ID");
-        }
 
-        const user = await User.findById(req.params.id).lean().exec();
-        if (!user) {
-            return handleError(res, 404, "User not found");
-        }
-        res.json(user);
-    } catch (error) {
-        logError('Error in getUserById', error);
-        handleError(res, 500, "An unexpected error occurred");
+export const getUsers = async (req, res) => {
+    const { filter, value } = matchedData(req);
+
+    const operation = () => {
+        const query = filter && value ? { [filter]: { $regex: value, $options: 'i' } } : {};
+        return User.find(query).lean().exec();
+    };
+
+    handleDatabaseOperation(operation, res);
+};
+
+export const getUserById = async (req, res) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return handleError(res, 400, "Invalid user ID");
     }
+
+    const operation = () => User.findById(req.params.id).lean().exec();
+    handleDatabaseOperation(operation, res);
 };
 
 export const createUser = async (req, res) => {
+    const validatedData = matchedData(req);
+
     try {
-        const validatedData = matchedData(req);
-
-        // Hash the password before saving
-        const hashedPassword = await hashPassword(validatedData.password);
-        const newUser = new User({ ...validatedData, password: hashedPassword });
-
+        validatedData.password = await hashPassword(validatedData.password);
+        const newUser = new User(validatedData);
         await newUser.save();
         res.status(201).json({
             id: newUser._id,
@@ -66,58 +54,42 @@ export const createUser = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-    try {
-        const validatedData = matchedData(req);
+    const validatedData = matchedData(req);
 
-        // Hash the password if it’s being updated
-        if (validatedData.password) {
-            validatedData.password = await hashPassword(validatedData.password);
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            validatedData,
-            { new: true, runValidators: true }
-        ).lean().exec();
-
-        if (!updatedUser) {
-            return handleError(res, 404, "User not found");
-        }
-        res.json(updatedUser);
-    } catch (error) {
-        logError('Error in updateUser', error);
-        handleError(res, 500, "An unexpected error occurred");
+    if (validatedData.password) {
+        validatedData.password = await hashPassword(validatedData.password);
     }
+
+    const operation = () => User.findByIdAndUpdate(
+        req.params.id,
+        validatedData,
+        { new: true, runValidators: true }
+    ).lean().exec();
+
+    handleDatabaseOperation(operation, res);
 };
 
 export const patchUser = async (req, res) => {
-    try {
-        const validatedData = matchedData(req);
+    const validatedData = matchedData(req);
 
-        // Hash the password if it’s being patched
-        if (validatedData.password) {
-            validatedData.password = await hashPassword(validatedData.password);
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            { $set: validatedData },
-            { new: true, runValidators: true }
-        ).lean().exec();
-
-        if (!updatedUser) {
-            return handleError(res, 404, "User not found");
-        }
-        res.json(updatedUser);
-    } catch (error) {
-        logError('Error in patchUser', error);
-        handleError(res, 500, "An unexpected error occurred");
+    if (validatedData.password) {
+        validatedData.password = await hashPassword(validatedData.password);
     }
+
+    const operation = () => User.findByIdAndUpdate(
+        req.params.id,
+        { $set: validatedData },
+        { new: true, runValidators: true }
+    ).lean().exec();
+
+    handleDatabaseOperation(operation, res);
 };
 
 export const deleteUser = async (req, res) => {
+    const operation = () => User.findByIdAndDelete(req.params.id).lean().exec();
+    
     try {
-        const deletedUser = await User.findByIdAndDelete(req.params.id).lean().exec();
+        const deletedUser = await operation();
         if (!deletedUser) {
             return handleError(res, 404, "User not found");
         }

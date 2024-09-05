@@ -1,4 +1,3 @@
 export const handleError = (res, status, message) => {
-    return res.status(status).json({ error: message });
-  };
-  
+  res.status(status).json({ error: message });
+};

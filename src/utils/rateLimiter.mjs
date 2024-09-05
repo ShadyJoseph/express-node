@@ -6,7 +6,6 @@ export const authLimiter = rateLimit({
   message: 'Too many login attempts, please try again later',
 });
 
-
 // Rate limiting for user creation to prevent abuse
 export const createUserLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
