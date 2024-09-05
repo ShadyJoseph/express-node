@@ -3,36 +3,30 @@ import { matchedData } from 'express-validator';
 import { handleError } from '../utils/responseHandlers.mjs';
 import { logError } from '../utils/logger.mjs';
 import User from '../mongoose/schemas/user.mjs';
-import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
+import { hashPassword } from '../utils/hashingUtils.mjs';
 
 export const getUsers = async (req, res) => {
     try {
         req.session.visited = true;
-
-        const apiToken = req.signedCookies.API_TOKEN;
-        if (!apiToken || apiToken !== "hello") {
-            return handleError(res, 403, "Access denied: Invalid or missing API token.");
-        }
 
         const { filter, value } = matchedData(req);
 
         let users;
         if (filter && value) {
             const query = {};
-            query[filter] = { $regex: value, $options: 'i' }; 
-            users = await User.find(query).lean().exec(); 
+            query[filter] = { $regex: value, $options: 'i' };
+            users = await User.find(query).lean().exec();
         } else {
-            users = await User.find({}).lean().exec(); 
+            users = await User.find({}).lean().exec();
         }
 
-        res.json({ users, token: apiToken });
+        res.json({ users });
     } catch (error) {
         logError('Error in getUsers', error);
         handleError(res, 500, "An unexpected error occurred");
     }
 };
-
 export const getUserById = async (req, res) => {
     try {
         // Validate if id is a valid ObjectId
@@ -56,12 +50,12 @@ export const createUser = async (req, res) => {
         const validatedData = matchedData(req);
 
         // Hash the password before saving
-        const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+        const hashedPassword = await hashPassword(validatedData.password);
         const newUser = new User({ ...validatedData, password: hashedPassword });
 
         await newUser.save();
         res.status(201).json({
-            id: newUser._id, 
+            id: newUser._id,
             username: newUser.username,
             job: newUser.job
         });
@@ -77,12 +71,12 @@ export const updateUser = async (req, res) => {
 
         // Hash the password if it’s being updated
         if (validatedData.password) {
-            validatedData.password = await bcrypt.hash(validatedData.password, 10);
+            validatedData.password = await hashPassword(validatedData.password);
         }
 
         const updatedUser = await User.findByIdAndUpdate(
-            req.params.id, 
-            validatedData, 
+            req.params.id,
+            validatedData,
             { new: true, runValidators: true }
         ).lean().exec();
 
@@ -102,12 +96,12 @@ export const patchUser = async (req, res) => {
 
         // Hash the password if it’s being patched
         if (validatedData.password) {
-            validatedData.password = await bcrypt.hash(validatedData.password, 10);
+            validatedData.password = await hashPassword(validatedData.password);
         }
 
         const updatedUser = await User.findByIdAndUpdate(
-            req.params.id, 
-            { $set: validatedData }, 
+            req.params.id,
+            { $set: validatedData },
             { new: true, runValidators: true }
         ).lean().exec();
 
