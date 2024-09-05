@@ -75,21 +75,19 @@ export const patchUserSchema = {
   job: { ...createUserSchema.job, optional: true },
   password: { ...createUserSchema.password, optional: true },
 };
-
-// Validation schema for auth
 export const authSchema = {
   username: {
-    in: ['body'],
-    isString: true,
-    notEmpty: true,
-    trim: true,
-    errorMessage: 'Username is required',
+      in: ['body'],
+      isString: true,
+      notEmpty: true,
+      trim: true,
+      errorMessage: 'Username is required',
   },
   password: {
-    in: ['body'],
-    isString: true,
-    notEmpty: true,
-    trim: true,
-    errorMessage: 'Password is required',
+      in: ['body'],
+      isString: true,
+      notEmpty: true,
+      trim: true,
+      errorMessage: 'Password is required',
   },
 };
