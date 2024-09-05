@@ -9,7 +9,7 @@ export const ensureAuthenticated = (req, res, next) => {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
-    console.log('Received token:', token); // Debug log
+    console.log('Received token:', token); 
 
     if (!token) {
         return handleError(res, 401, 'Access denied: No token provided');
@@ -17,18 +17,18 @@ export const ensureAuthenticated = (req, res, next) => {
 
     // Check if the token is blacklisted
     if (isBlacklisted(token)) {
-        console.log('Token is blacklisted'); // Debug log
+        console.log('Token is blacklisted'); 
         return handleError(res, 401, 'Access denied: Invalid token');
     }
 
     jwt.verify(token, APP_CONFIG.jwtSecret, (err, decoded) => {
         if (err) {
-            console.error('JWT verification error:', err); // Debug log
+            console.error('JWT verification error:', err); 
             return handleError(res, 401, 'Access denied: Invalid token');
         }
 
         req.user = decoded;
-        console.log('Decoded user:', req.user); // Debug log
+        console.log('Decoded user:', req.user); 
 
         next();
     });

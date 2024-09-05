@@ -18,7 +18,7 @@ export const authUser = (req, res, next) => {
                 return next(err);
             }
 
-            // Generate a JWT without the role information
+            // Generate a JWT 
             const token = jwt.sign(
                 { id: user.id, username: user.username },
                 APP_CONFIG.jwtSecret,

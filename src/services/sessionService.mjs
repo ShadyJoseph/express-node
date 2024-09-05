@@ -8,7 +8,7 @@ const sessionOptions = {
   resave: false,
   cookie: {
     httpOnly: true,
-    secure: APP_CONFIG.env === 'production', // Ensure cookies are secure in production
+    secure: APP_CONFIG.env === 'production', 
     sameSite: 'strict', // Prevents CSRF attacks
     maxAge: APP_CONFIG.sessionMaxAge, 
   },

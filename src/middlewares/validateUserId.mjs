@@ -13,7 +13,7 @@ const validateUserId = [
       if (!user) {
         return res.status(404).json({ error: `User with ID ${userId} not found` });
       }
-      req.user = user; // Pass the user data to the next middleware or controller
+      req.user = user; 
       next();
     } catch (err) {
       console.error('Error validating user ID:', err);

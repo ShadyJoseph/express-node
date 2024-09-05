@@ -22,7 +22,6 @@ import { createUserLimiter } from '../utils/rateLimiter.mjs';
 
 const router = express.Router();
 
-// Ensure JWT authentication for all user routes
 router.use(ensureAuthenticated);
 
 router.get('/', checkSchema(userFiltersSchema), validateRequest, getUsers);

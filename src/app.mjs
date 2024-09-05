@@ -37,7 +37,7 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json());
 app.use(cookieParser(APP_CONFIG.cookieSecret));
-app.use(sessionService); // Ensure this uses valid configuration
+app.use(sessionService); 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(morgan('combined'));
