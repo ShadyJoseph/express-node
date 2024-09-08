@@ -5,7 +5,6 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import passport from 'passport';
-
 import routes from './routes/index.mjs';
 import logRequests from './middlewares/logRequests.mjs';
 import errorHandler from './middlewares/errorHandler.mjs';

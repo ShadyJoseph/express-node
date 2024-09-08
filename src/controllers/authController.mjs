@@ -45,6 +45,10 @@ export const refreshToken = (req, res) => {
 };
 
 export const logoutUser = (req, res, next) => {
+    if (!req.isAuthenticated()) {
+        return handleError(res, 401, 'You are not logged in');
+    }
+
     const token = req.headers.authorization?.split(' ')[1];
 
     req.logout((err) => {
@@ -61,3 +65,4 @@ export const logoutUser = (req, res, next) => {
         });
     });
 };
+
