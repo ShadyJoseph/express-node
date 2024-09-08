@@ -16,8 +16,8 @@ import './strategies/localStrategy.mjs';
 // Initialize Express app
 const app = express();
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost/express-node')
+// MongoDB connection
+mongoose.connect(APP_CONFIG.mongoUrl)
     .then(() => console.log('Connected to the database'))
     .catch((err) => {
         console.error(`Database connection error: ${err.message}`);
