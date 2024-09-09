@@ -10,7 +10,7 @@ import logRequests from './middlewares/logRequests.mjs';
 import errorHandler from './middlewares/errorHandler.mjs';
 import sessionService from './services/sessionService.mjs';
 import { APP_CONFIG } from './config/config.mjs';
-import './strategies/localStrategy.mjs';
+import './passport/localStrategy.mjs';
 
 // Initialize Express app
 const app = express();

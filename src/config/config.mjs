@@ -10,4 +10,6 @@ export const APP_CONFIG = {
   sessionMaxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || 1000 * 60 * 60 * 2, // Default: 2 hours
   jwtSecret: process.env.JWT_SECRET || 'defaultJwtSecret',
   mongoUrl: process.env.MONGO_URL || 'mongodb://localhost/express-node', 
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
 };
