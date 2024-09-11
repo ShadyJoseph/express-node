@@ -1,9 +1,10 @@
 import passport from 'passport';
 import { Strategy as DiscordStrategy } from 'passport-discord';
-import User from '../mongoose/schemas/user.mjs';
+import DiscordUser from '../mongoose/schemas/discordUser.mjs';
 import { APP_CONFIG } from '../config/config.mjs';
-import { logError } from '../utils/logger.mjs'; // Ensure you have this utility for logging errors
+import { logError } from '../utils/logger.mjs';
 
+// Configure Discord Strategy
 passport.use(new DiscordStrategy({
     clientID: APP_CONFIG.discordClientId,
     clientSecret: APP_CONFIG.discordClientSecret,
@@ -16,7 +17,7 @@ async (accessToken, refreshToken, profile, done) => {
         let user;
 
         try {
-            user = await User.findOne({ discordId: profile.id }).exec();
+            user = await DiscordUser.findOne({ discordId: profile.id }).exec();
         } catch (dbError) {
             logError('Error finding user by Discord ID', dbError);
             return done(dbError, false);
@@ -24,7 +25,7 @@ async (accessToken, refreshToken, profile, done) => {
 
         if (!user) {
             try {
-                user = new User({
+                user = new DiscordUser({
                     discordId: profile.id,
                     username: profile.username,
                     email,
@@ -42,5 +43,20 @@ async (accessToken, refreshToken, profile, done) => {
         return done(err, false);
     }
 }));
+
+// Serialize user
+passport.serializeUser((user, done) => done(null, user.id));
+
+// Deserialize user
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await DiscordUser.findById(id).exec();
+        if (!user) return done(new Error('User not found'));
+        done(null, user);
+    } catch (err) {
+        console.error(`Error deserializing user: ${err.message}`);
+        done(err);
+    }
+});
 
 export default passport;

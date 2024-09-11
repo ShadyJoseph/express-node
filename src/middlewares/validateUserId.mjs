@@ -1,7 +1,7 @@
 import { checkSchema } from 'express-validator';
 import { userIdSchema } from '../utils/validationSchemas.mjs';
 import validateRequest from './validateRequest.mjs';
-import User from '../mongoose/schemas/user.mjs';
+import LocalUser from '../mongoose/schemas/localuser.mjs';
 
 const validateUserId = [
   checkSchema(userIdSchema),
@@ -9,7 +9,7 @@ const validateUserId = [
   async (req, res, next) => {
     try {
       const userId = req.params.id;
-      const user = await User.findById(userId);
+      const user = await LocalUser.findById(userId);
       if (!user) {
         return res.status(404).json({ error: `User with ID ${userId} not found` });
       }
