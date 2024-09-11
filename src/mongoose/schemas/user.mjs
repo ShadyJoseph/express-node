@@ -15,6 +15,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    discordId: {
+        type: String,
+        unique: true,
+        sparse: true, // allows the field to be unique but also allows it to be null
+    },
+    email: {
+        type: String,
+        unique: true, // Ensure emails are unique
+        sparse: true, // Allows the field to be null for users who don't use Discord
+    },
 }, {
     timestamps: true,
 });

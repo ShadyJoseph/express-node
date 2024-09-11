@@ -65,4 +65,3 @@ export const logoutUser = (req, res, next) => {
         });
     });
 };
-

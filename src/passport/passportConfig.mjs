@@ -1,7 +1,6 @@
-// src/passport/passportConfig.mjs
 import passport from 'passport';
 import './localStrategy.mjs';
-import './googleStrategy.mjs';
+import './discordStrategy.mjs';
 import User from '../mongoose/schemas/user.mjs';
 
 // Serialize user to store in session

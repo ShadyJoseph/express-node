@@ -11,10 +11,10 @@ const router = express.Router();
 // Local Authentication route
 router.post('/', authLimiter, checkSchema(authSchema), validateRequest, authUser);
 
-// Google OAuth2 routes
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+// Discord OAuth2 routes
+router.get('/discord', passport.authenticate('discord'));
 
-router.get('/google/callback', passport.authenticate('google', { 
+router.get('/discord/redirect', passport.authenticate('discord', { 
     failureRedirect: '/login',
     successRedirect: '/',
 }));
