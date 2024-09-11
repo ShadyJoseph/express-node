@@ -12,10 +12,9 @@ import sessionService from './services/sessionService.mjs';
 import { APP_CONFIG } from './config/config.mjs';
 import './passport/localStrategy.mjs';
 import './passport/discordStrategy.mjs';
-// Initialize Express app
+
 const app = express();
 
-// MongoDB connection
 mongoose.connect(APP_CONFIG.mongoUrl)
     .then(() => console.log('Connected to the database'))
     .catch((err) => {
@@ -23,26 +22,18 @@ mongoose.connect(APP_CONFIG.mongoUrl)
         process.exit(1);
     });
 
-// Mongoose connection events
-mongoose.connection.on('error', (err) => console.error(`Mongoose connection error: ${err}`));
-mongoose.connection.on('connected', () => console.log('Mongoose connected to the database'));
-mongoose.connection.on('disconnected', () => console.log('Mongoose disconnected from the database'));
+app.use(helmet());
+app.use(compression());
+app.use(express.json());
+app.use(cookieParser(APP_CONFIG.cookieSecret));
+app.use(sessionService);
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(morgan('combined'));
+app.use(logRequests);
 
-// Middleware setup
-app.use(helmet()); // Security headers
-app.use(compression()); // Compress responses
-app.use(express.json()); // Parse JSON request bodies
-app.use(cookieParser(APP_CONFIG.cookieSecret)); // Cookie parser
-app.use(sessionService); // Session management
-app.use(passport.initialize()); // Initialize Passport
-app.use(passport.session()); // Passport session management
-app.use(morgan('combined')); // HTTP request logger
-app.use(logRequests); // Custom request logging
-
-// Route handling
 app.use('/api', routes);
 
-// Error handling
 app.use(errorHandler);
 
 export default app;
