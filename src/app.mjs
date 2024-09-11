@@ -11,7 +11,7 @@ import errorHandler from './middlewares/errorHandler.mjs';
 import sessionService from './services/sessionService.mjs';
 import { APP_CONFIG } from './config/config.mjs';
 import './passport/localStrategy.mjs';
-
+import './passport/discordStrategy.mjs';
 // Initialize Express app
 const app = express();
 

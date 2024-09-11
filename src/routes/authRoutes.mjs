@@ -14,9 +14,10 @@ router.post('/', authLimiter, checkSchema(authSchema), validateRequest, authUser
 // Discord OAuth2 routes
 router.get('/discord', passport.authenticate('discord'));
 
+// Discord OAuth2 redirect route
 router.get('/discord/redirect', passport.authenticate('discord', { 
-    failureRedirect: '/login',
-    successRedirect: '/',
+    failureRedirect: '/login',  // Redirect to login on failure
+    successRedirect: '/',       // Redirect to home page on success
 }));
 
 // Logout route

@@ -8,7 +8,7 @@ router.get('/', (req, res) => {
     res.status(200).json({ message: 'WELCOME TO THE API' });
 });
 
-router.use('/users', userRoutes);
-router.use('/auth', authRoutes);
+router.use('/users', userRoutes);  // User routes
+router.use('/auth', authRoutes);   // Authentication routes
 
 export default router;

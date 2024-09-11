@@ -7,23 +7,26 @@ passport.use(new DiscordStrategy({
     clientID: APP_CONFIG.discordClientId,
     clientSecret: APP_CONFIG.discordClientSecret,
     callbackURL: '/auth/discord/redirect',
-    scope: ['identify', 'email'],
+    scope: ['identify', 'email'], 
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
-        let user = await User.findOne({ discordId: profile.id });
+        const email = profile.email || profile.emails?.[0]?.value || null;
+
+        let user = await User.findOne({ discordId: profile.id }).exec();
 
         if (!user) {
             user = new User({
                 discordId: profile.id,
                 username: profile.username,
-                email: profile.email,
+                email,
             });
             await user.save();
         }
 
         return done(null, user);
     } catch (err) {
+        console.error(`Error authenticating Discord user: ${err.message}`);
         return done(err, false);
     }
 }));
