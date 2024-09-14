@@ -2,12 +2,12 @@ import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import { handleError } from '../utils/responseHandlers.mjs';
 import { addToBlacklist } from '../utils/tokenBlacklist.mjs';
-import { APP_CONFIG } from '../config/config.mjs';
+import { APP_CONFIG, MESSAGES } from '../config/config.mjs';
 
 export const authUser = (req, res, next) => {
     passport.authenticate('local', (err, user) => {
         if (err) return next(err);
-        if (!user) return handleError(res, 401, 'Invalid credentials');
+        if (!user) return handleError(res, 401, MESSAGES.invalidCredentials);
 
         req.logIn(user, (err) => {
             if (err) return next(err);
@@ -19,7 +19,7 @@ export const authUser = (req, res, next) => {
             );
 
             res.status(200).json({
-                message: 'Authenticated successfully',
+                message: MESSAGES.authSuccess,
                 token,
                 user: { id: user.id, username: user.username, job: user.job },
             });
@@ -46,7 +46,7 @@ export const refreshToken = (req, res) => {
 
 export const logoutUser = (req, res, next) => {
     if (!req.isAuthenticated()) {
-        return handleError(res, 401, 'You are not logged in');
+        return handleError(res, 401, MESSAGES.notLoggedIn);
     }
 
     const token = req.headers.authorization?.split(' ')[1];
@@ -61,7 +61,7 @@ export const logoutUser = (req, res, next) => {
 
             if (token) addToBlacklist(token);
 
-            res.status(200).json({ message: 'Logged out successfully' });
+            res.status(200).json({ message: MESSAGES.logoutSuccess });
         });
     });
 };

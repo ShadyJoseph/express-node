@@ -8,35 +8,21 @@ import { logError } from '../utils/logger.mjs';
 passport.use(new DiscordStrategy({
     clientID: APP_CONFIG.discordClientId,
     clientSecret: APP_CONFIG.discordClientSecret,
-    callbackURL: '/auth/discord/redirect',
+    callbackURL: 'http://localhost:3000/api/auth/discord/redirect',
     scope: ['identify', 'email'],
-},
-async (accessToken, refreshToken, profile, done) => {
+}, async (accessToken, refreshToken, profile, done) => {
     try {
         const email = profile.email || profile.emails?.[0]?.value || null;
-        let user;
-
-        try {
-            user = await DiscordUser.findOne({ discordId: profile.id }).exec();
-        } catch (dbError) {
-            logError('Error finding user by Discord ID', dbError);
-            return done(dbError, false);
-        }
+        let user = await DiscordUser.findOne({ discordId: profile.id });
 
         if (!user) {
-            try {
-                user = new DiscordUser({
-                    discordId: profile.id,
-                    username: profile.username,
-                    email,
-                });
-                await user.save();
-            } catch (saveError) {
-                logError('Error saving new user to the database', saveError);
-                return done(saveError, false);
-            }
+            user = new DiscordUser({
+                discordId: profile.id,
+                username: profile.username,
+                email,
+            });
+            await user.save();
         }
-
         return done(null, user);
     } catch (err) {
         logError('Error during Discord authentication', err);
@@ -50,11 +36,11 @@ passport.serializeUser((user, done) => done(null, user.id));
 // Deserialize user
 passport.deserializeUser(async (id, done) => {
     try {
-        const user = await DiscordUser.findById(id).exec();
+        const user = await DiscordUser.findById(id);
         if (!user) return done(new Error('User not found'));
         done(null, user);
     } catch (err) {
-        console.error(`Error deserializing user: ${err.message}`);
+        logError('Error deserializing user', err);
         done(err);
     }
 });

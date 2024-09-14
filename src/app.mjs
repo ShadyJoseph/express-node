@@ -12,7 +12,7 @@ import sessionService from './services/sessionService.mjs';
 import { APP_CONFIG } from './config/config.mjs';
 import './passport/localStrategy.mjs';
 import './passport/discordStrategy.mjs';
-
+const router = express.Router();
 const app = express();
 
 mongoose.connect(APP_CONFIG.mongoUrl)
