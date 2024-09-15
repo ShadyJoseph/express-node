@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-const LocalUser = mongoose.model('LocalUser', userSchema); 
+// Prevent model overwrite
+const LocalUser = mongoose.models.LocalUser || mongoose.model('LocalUser', userSchema);
 
 export default LocalUser;

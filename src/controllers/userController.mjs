@@ -1,7 +1,7 @@
 import { matchedData } from 'express-validator';
 import { handleError } from '../utils/responseHandlers.mjs';
 import { logError } from '../utils/logger.mjs';
-import LocalUser from '../mongoose/schemas/localuser.mjs';
+import LocalUser from '../mongoose/schemas/localUser.mjs';
 import mongoose from 'mongoose';
 import { hashPassword } from '../utils/hashingUtils.mjs';
 
