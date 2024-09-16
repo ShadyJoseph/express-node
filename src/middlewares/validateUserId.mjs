@@ -1,7 +1,7 @@
 import { checkSchema } from 'express-validator';
 import { userIdSchema } from '../utils/validationSchemas.mjs';
 import validateRequest from './validateRequest.mjs';
-import LocalUser from '../mongoose/schemas/localuser.mjs';
+import LocalUser from '../mongoose/schemas/localUser.mjs';
 
 const validateUserId = [
   checkSchema(userIdSchema),

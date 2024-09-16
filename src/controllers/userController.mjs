@@ -4,18 +4,29 @@ import { logError } from '../utils/logger.mjs';
 import LocalUser from '../mongoose/schemas/localUser.mjs';
 import mongoose from 'mongoose';
 import { hashPassword } from '../utils/hashingUtils.mjs';
+import { MESSAGES, STATUS_CODES } from '../config/config.mjs';
 
-// Utility to handle database operations
-const handleDatabaseOperation = async (operation, res, successStatus = 200, notFoundStatus = 404) => {
+// Utility to handle database operations with enhanced granularity
+const handleDatabaseOperation = async (operation, res, options = {}) => {
+    const {
+        successStatus = STATUS_CODES.success, 
+        notFoundStatus = STATUS_CODES.notFound, 
+        notFoundMessage = MESSAGES.userNotFound,
+        successMessage = null,
+    } = options;
+
     try {
         const result = await operation();
         if (!result && notFoundStatus) {
-            return handleError(res, notFoundStatus, "Resource not found");
+            return handleError(res, notFoundStatus, notFoundMessage);
         }
-        res.status(successStatus).json(result);
+        return res.status(successStatus).json(successMessage ? { message: successMessage, result } : result);
     } catch (error) {
-        logError('Database operation error', error);
-        handleError(res, 500, "An unexpected error occurred");
+        if (error.code === 11000) {
+            return handleError(res, STATUS_CODES.badRequest, MESSAGES.duplicateKeyError);
+        }
+        logError(MESSAGES.unexpectedError, error);
+        handleError(res, STATUS_CODES.serverError, MESSAGES.unexpectedError);
     }
 };
 
@@ -27,33 +38,39 @@ export const getUsers = async (req, res) => {
         return LocalUser.find(query).lean().exec();
     };
 
-    handleDatabaseOperation(operation, res);
+    await handleDatabaseOperation(operation, res);
 };
 
 export const getUserById = async (req, res) => {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-        return handleError(res, 400, "Invalid user ID");
+    const userId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return handleError(res, STATUS_CODES.badRequest, MESSAGES.invalidUserId);
     }
 
-    const operation = () => LocalUser.findById(req.params.id).lean().exec();
-    handleDatabaseOperation(operation, res, 200, 404);
+    const operation = () => LocalUser.findById(userId).lean().exec();
+    await handleDatabaseOperation(operation, res, {
+        notFoundMessage: MESSAGES.userNotFound
+    });
 };
 
 export const createUser = async (req, res) => {
     const validatedData = matchedData(req);
 
     try {
-        validatedData.password = await hashPassword(validatedData.password);
+        if (validatedData.password) {
+            validatedData.password = await hashPassword(validatedData.password);
+        }
+
         const newUser = new LocalUser(validatedData);
         await newUser.save();
-        res.status(201).json({
-            id: newUser._id,
-            username: newUser.username,
-            job: newUser.job
+
+        res.status(STATUS_CODES.created).json({
+            message: MESSAGES.userCreated,
+            user: { id: newUser._id, username: newUser.username, job: newUser.job }
         });
     } catch (error) {
-        logError('Error in createUser', error);
-        handleError(res, 500, "An unexpected error occurred");
+        logError(MESSAGES.unexpectedError, error);
+        handleError(res, STATUS_CODES.serverError, MESSAGES.unexpectedError);
     }
 };
 
@@ -70,7 +87,10 @@ export const updateUser = async (req, res) => {
         { new: true, runValidators: true }
     ).lean().exec();
 
-    handleDatabaseOperation(operation, res, 200, 404);
+    await handleDatabaseOperation(operation, res, {
+        successMessage: MESSAGES.userUpdated,
+        notFoundMessage: MESSAGES.userNotFound
+    });
 };
 
 export const patchUser = async (req, res) => {
@@ -80,17 +100,30 @@ export const patchUser = async (req, res) => {
         validatedData.password = await hashPassword(validatedData.password);
     }
 
+    const updateData = Object.keys(validatedData).reduce((acc, key) => {
+        if (validatedData[key] !== undefined) {
+            acc[key] = validatedData[key];
+        }
+        return acc;
+    }, {});
+
     const operation = () => LocalUser.findByIdAndUpdate(
         req.params.id,
-        { $set: validatedData },
+        { $set: updateData },
         { new: true, runValidators: true }
     ).lean().exec();
 
-    handleDatabaseOperation(operation, res, 200, 404);
+    await handleDatabaseOperation(operation, res, {
+        successMessage: MESSAGES.userUpdated,
+        notFoundMessage: MESSAGES.userNotFound
+    });
 };
 
 export const deleteUser = async (req, res) => {
     const operation = () => LocalUser.findByIdAndDelete(req.params.id).lean().exec();
-    
-    handleDatabaseOperation(operation, res, 204, 404);
+
+    await handleDatabaseOperation(operation, res, {
+        successStatus: STATUS_CODES.noContent,
+        notFoundMessage: MESSAGES.userNotFound
+    });
 };
