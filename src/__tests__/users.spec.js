@@ -24,7 +24,7 @@ jest.mock("../utils/hashingUtils.mjs", () => ({
 }));
 
 jest.mock("../utils/logger.mjs", () => ({
-    logError: jest.fn(),
+    logger: jest.fn(),
 }));
 
 const mockRequest = {};
@@ -201,6 +201,7 @@ describe('updateUser', () => {
 
 // Test for deleteUser
 import { deleteUser } from '../controllers/userController.mjs';
+import { logger } from '../utils/logger.mjs';
 
 describe('deleteUser', () => {
     it('should delete user and return 204', async () => {

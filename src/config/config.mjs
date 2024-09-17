@@ -1,15 +1,17 @@
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 export const APP_CONFIG = {
     port: process.env.PORT || 3000,
     env: process.env.NODE_ENV || 'development',
+    isProduction: process.env.NODE_ENV === 'production',
     sessionSecret: process.env.SESSION_SECRET || 'defaultSessionSecret',
     cookieSecret: process.env.COOKIE_SECRET || 'defaultCookieSecret',
     sessionMaxAge: parseInt(process.env.SESSION_MAX_AGE, 10) || 1000 * 60 * 60 * 2, // 2 hours
     jwtSecret: process.env.JWT_SECRET || 'defaultJwtSecret',
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'defaultJwtRefreshSecret',
+    jwtExpiry: process.env.JWT_EXPIRY || '1h',
+    jwtMaxAge: parseInt(process.env.JWT_MAX_AGE, 10) || 1000 * 60 * 60 * 1, // 1 hour
     mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/express-node',
     discordClientId: process.env.DISCORD_CLIENT_ID || '',
     discordClientSecret: process.env.DISCORD_CLIENT_SECRET || '',

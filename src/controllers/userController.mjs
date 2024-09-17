@@ -1,6 +1,6 @@
 import { matchedData } from 'express-validator';
 import { handleError } from '../utils/responseHandlers.mjs';
-import { logError } from '../utils/logger.mjs';
+import { logger } from '../utils/logger.mjs';
 import LocalUser from '../mongoose/schemas/localUser.mjs';
 import mongoose from 'mongoose';
 import { hashPassword } from '../utils/hashingUtils.mjs';
@@ -25,7 +25,7 @@ const handleDatabaseOperation = async (operation, res, options = {}) => {
         if (error.code === 11000) {
             return handleError(res, STATUS_CODES.badRequest, MESSAGES.duplicateKeyError);
         }
-        logError(MESSAGES.unexpectedError, error);
+        logger(MESSAGES.unexpectedError, error);
         handleError(res, STATUS_CODES.serverError, MESSAGES.unexpectedError);
     }
 };
@@ -69,7 +69,7 @@ export const createUser = async (req, res) => {
             user: { id: newUser._id, username: newUser.username, job: newUser.job }
         });
     } catch (error) {
-        logError(MESSAGES.unexpectedError, error);
+        logger(MESSAGES.unexpectedError, error);
         handleError(res, STATUS_CODES.serverError, MESSAGES.unexpectedError);
     }
 };

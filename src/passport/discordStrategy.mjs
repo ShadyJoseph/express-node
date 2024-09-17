@@ -2,7 +2,7 @@ import passport from 'passport';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import DiscordUser from '../mongoose/schemas/discordUser.mjs';
 import { APP_CONFIG } from '../config/config.mjs';
-import { logError } from '../utils/logger.mjs';
+import { logger } from '../utils/logger.mjs';
 
 // Configure Discord Strategy
 passport.use(new DiscordStrategy({
@@ -25,7 +25,7 @@ passport.use(new DiscordStrategy({
         }
         return done(null, user);
     } catch (err) {
-        logError('Error during Discord authentication', err);
+        logger('Error during Discord authentication', err);
         return done(err, false);
     }
 }));
@@ -40,7 +40,7 @@ passport.deserializeUser(async (id, done) => {
         if (!user) return done(new Error('User not found'));
         done(null, user);
     } catch (err) {
-        logError('Error deserializing user', err);
+        logger('Error deserializing user', err);
         done(err);
     }
 });
