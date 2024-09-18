@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import LocalUser from '../mongoose/schemas/localuser.mjs';
+import LocalUser from '../mongoose/schemas/localUser.mjs';
 import bcrypt from 'bcrypt';
 
 // Configure Local Strategy

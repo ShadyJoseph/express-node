@@ -16,31 +16,44 @@ passport.use(new DiscordStrategy({
         let user = await DiscordUser.findOne({ discordId: profile.id });
 
         if (!user) {
+            logger.info(`Creating new user in database with DiscordId: ${profile.id} and username: ${profile.username}`);
             user = new DiscordUser({
                 discordId: profile.id,
                 username: profile.username,
                 email,
             });
             await user.save();
+            logger.info(`User saved successfully with UserId: ${user.id}`);
+        } else {
+            logger.info(`User already exists in database with UserId: ${user.id}`);
         }
+
         return done(null, user);
     } catch (err) {
-        logger('Error during Discord authentication', err);
+        logger.error('Error during Discord authentication', err);
         return done(err, false);
     }
 }));
 
 // Serialize user
-passport.serializeUser((user, done) => done(null, user.id));
+passport.serializeUser((user, done) => {
+    logger.info(`Serializing user with UserId: ${user.id}`);
+    done(null, user.id);
+});
 
 // Deserialize user
 passport.deserializeUser(async (id, done) => {
+    logger.info(`Deserializing user with Id: ${id}`);
     try {
         const user = await DiscordUser.findById(id);
-        if (!user) return done(new Error('User not found'));
+        if (!user) {
+            logger.warn(`User not found during deserialization for Id: ${id}`);
+            return done(new Error('User not found'));
+        }
+        logger.info(`User found during deserialization with UserId: ${user.id}`);
         done(null, user);
     } catch (err) {
-        logger('Error deserializing user', err);
+        logger.error('Error deserializing user', err);
         done(err);
     }
 });
