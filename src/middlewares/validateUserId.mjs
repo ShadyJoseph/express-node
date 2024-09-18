@@ -2,6 +2,7 @@ import { checkSchema } from 'express-validator';
 import { userIdSchema } from '../utils/validationSchemas.mjs';
 import validateRequest from './validateRequest.mjs';
 import LocalUser from '../mongoose/schemas/localUser.mjs';
+import { logger } from '../utils/logger.mjs';  
 
 const validateUserId = [
   checkSchema(userIdSchema),
@@ -16,7 +17,7 @@ const validateUserId = [
       req.user = user; 
       next();
     } catch (err) {
-      console.error('Error validating user ID:', err);
+      logger.error('Error validating user ID:', err);  
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }

@@ -10,15 +10,17 @@ import logRequests from './middlewares/logRequests.mjs';
 import errorHandler from './middlewares/errorHandler.mjs';
 import sessionService from './services/sessionService.mjs';
 import { APP_CONFIG } from './config/config.mjs';
+import { logger } from './utils/logger.mjs'; 
 import './passport/localStrategy.mjs';
 import './passport/discordStrategy.mjs';
+
 const router = express.Router();
 const app = express();
 
 mongoose.connect(APP_CONFIG.mongoUrl)
-    .then(() => console.log('Connected to the database'))
+    .then(() => logger.info('Connected to the database')) 
     .catch((err) => {
-        console.error(`Database connection error: ${err.message}`);
+        logger.error(`Database connection error: ${err.message}`, err);  
         process.exit(1);
     });
 

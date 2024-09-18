@@ -2,6 +2,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import LocalUser from '../mongoose/schemas/localUser.mjs';
 import bcrypt from 'bcrypt';
+import { logger } from '../utils/logger.mjs'; 
 
 // Configure Local Strategy
 passport.use(new LocalStrategy(async (username, password, done) => {
@@ -14,7 +15,7 @@ passport.use(new LocalStrategy(async (username, password, done) => {
 
         return done(null, user);
     } catch (err) {
-        console.error(`Error during local authentication: ${err.message}`);
+        logger.error(`Error during local authentication: ${err.message}`, err);  
         return done(err);
     }
 }));
@@ -29,7 +30,7 @@ passport.deserializeUser(async (id, done) => {
         if (!user) return done(new Error('User not found'));
         done(null, user);
     } catch (err) {
-        console.error(`Error deserializing user: ${err.message}`);
+        logger.error(`Error deserializing user: ${err.message}`, err);
         done(err);
     }
 });

@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import { hashPassword } from '../utils/hashingUtils.mjs';
 import { MESSAGES, STATUS_CODES } from '../config/config.mjs';
 
-// Utility to handle database operations with enhanced granularity
+// Utility to handle database operations
 const handleDatabaseOperation = async (operation, res, options = {}) => {
     const {
         successStatus = STATUS_CODES.success, 
@@ -22,14 +22,21 @@ const handleDatabaseOperation = async (operation, res, options = {}) => {
         }
         return res.status(successStatus).json(successMessage ? { message: successMessage, result } : result);
     } catch (error) {
-        if (error.code === 11000) {
-            return handleError(res, STATUS_CODES.badRequest, MESSAGES.duplicateKeyError);
-        }
-        logger(MESSAGES.unexpectedError, error);
-        handleError(res, STATUS_CODES.serverError, MESSAGES.unexpectedError);
+        logger.error(MESSAGES.unexpectedError, error);
+        const errorMessage = error.code === 11000 ? MESSAGES.duplicateKeyError : MESSAGES.unexpectedError;
+        handleError(res, STATUS_CODES.serverError, errorMessage);
     }
 };
 
+// Helper to validate and hash passwords
+const validateAndHashPassword = async (data) => {
+    if (data.password) {
+        data.password = await hashPassword(data.password);
+    }
+    return data;
+};
+
+// Get users with optional filters
 export const getUsers = async (req, res) => {
     const { filter, value } = matchedData(req);
 
@@ -41,6 +48,7 @@ export const getUsers = async (req, res) => {
     await handleDatabaseOperation(operation, res);
 };
 
+// Get user by ID
 export const getUserById = async (req, res) => {
     const userId = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -48,38 +56,23 @@ export const getUserById = async (req, res) => {
     }
 
     const operation = () => LocalUser.findById(userId).lean().exec();
+    await handleDatabaseOperation(operation, res);
+};
+
+// Create new user
+export const createUser = async (req, res) => {
+    const validatedData = await validateAndHashPassword(matchedData(req));
+
+    const operation = () => new LocalUser(validatedData).save();
     await handleDatabaseOperation(operation, res, {
-        notFoundMessage: MESSAGES.userNotFound
+        successStatus: STATUS_CODES.created,
+        successMessage: MESSAGES.userCreated,
     });
 };
 
-export const createUser = async (req, res) => {
-    const validatedData = matchedData(req);
-
-    try {
-        if (validatedData.password) {
-            validatedData.password = await hashPassword(validatedData.password);
-        }
-
-        const newUser = new LocalUser(validatedData);
-        await newUser.save();
-
-        res.status(STATUS_CODES.created).json({
-            message: MESSAGES.userCreated,
-            user: { id: newUser._id, username: newUser.username, job: newUser.job }
-        });
-    } catch (error) {
-        logger(MESSAGES.unexpectedError, error);
-        handleError(res, STATUS_CODES.serverError, MESSAGES.unexpectedError);
-    }
-};
-
+// Update user by replacing fields (PUT)
 export const updateUser = async (req, res) => {
-    const validatedData = matchedData(req);
-
-    if (validatedData.password) {
-        validatedData.password = await hashPassword(validatedData.password);
-    }
+    const validatedData = await validateAndHashPassword(matchedData(req));
 
     const operation = () => LocalUser.findByIdAndUpdate(
         req.params.id,
@@ -87,43 +80,24 @@ export const updateUser = async (req, res) => {
         { new: true, runValidators: true }
     ).lean().exec();
 
-    await handleDatabaseOperation(operation, res, {
-        successMessage: MESSAGES.userUpdated,
-        notFoundMessage: MESSAGES.userNotFound
-    });
+    await handleDatabaseOperation(operation, res, { successMessage: MESSAGES.userUpdated });
 };
 
+// Update user with partial fields (PATCH)
 export const patchUser = async (req, res) => {
-    const validatedData = matchedData(req);
-
-    if (validatedData.password) {
-        validatedData.password = await hashPassword(validatedData.password);
-    }
-
-    const updateData = Object.keys(validatedData).reduce((acc, key) => {
-        if (validatedData[key] !== undefined) {
-            acc[key] = validatedData[key];
-        }
-        return acc;
-    }, {});
+    const validatedData = await validateAndHashPassword(matchedData(req));
 
     const operation = () => LocalUser.findByIdAndUpdate(
         req.params.id,
-        { $set: updateData },
+        { $set: validatedData },
         { new: true, runValidators: true }
     ).lean().exec();
 
-    await handleDatabaseOperation(operation, res, {
-        successMessage: MESSAGES.userUpdated,
-        notFoundMessage: MESSAGES.userNotFound
-    });
+    await handleDatabaseOperation(operation, res, { successMessage: MESSAGES.userUpdated });
 };
 
+// Delete user
 export const deleteUser = async (req, res) => {
     const operation = () => LocalUser.findByIdAndDelete(req.params.id).lean().exec();
-
-    await handleDatabaseOperation(operation, res, {
-        successStatus: STATUS_CODES.noContent,
-        notFoundMessage: MESSAGES.userNotFound
-    });
+    await handleDatabaseOperation(operation, res, { successStatus: STATUS_CODES.noContent });
 };
